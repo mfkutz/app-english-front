@@ -1,0 +1,42 @@
+# En otra carpeta (no dentro del backend)
+npx react-native init EnglishAppFrontend --template react-native-template-typescript
+
+cd EnglishAppFrontend
+
+# Instalar dependencias esenciales
+npm install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
+npm install react-native-screens react-native-safe-area-context
+npm install react-native-gesture-handler react-native-reanimated
+npm install react-native-vector-icons react-native-svg
+
+# Navegación específica
+npm install @react-navigation/native-stack
+
+# HTTP Client y estado
+npm install axios @tanstack/react-query zustand
+npm install react-hook-form yup @hookform/resolvers
+
+# UI Components
+npm install native-base  # O react-native-paper (yo prefiero NativeBase)
+
+# Utilidades
+npm install dayjs
+npm install react-native-async-storage
+npm install react-native-dotenv
+
+# Para permisos (audio después)
+npm install react-native-permissions
+
+# Si usas Expo (opcional pero recomendado para desarrollo rápido)
+npx expo install expo-font expo-asset expo-splash-screen
+
+
+/////////////// CLEAR CACHE ///////////////
+martin@martin-System-Product-Name:~/Desktop/EnglishAppFront$ rm -rf node_modules/.cache
+martin@martin-System-Product-Name:~/Desktop/EnglishAppFront$ rm -rf .expo
+martin@martin-System-Product-Name:~/Desktop/EnglishAppFront$ npm start -- --clear
+
+//realmente utilizadas:
+npm install @react-native-async-storage/async-storage
+# Instalar dependencias de Google para Expo
+npx expo install expo-auth-session expo-web-browser expo-crypto
