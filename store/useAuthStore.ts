@@ -1,8 +1,8 @@
-import { googleAuthService } from "@/services/google.auth.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { authService, UserProfile } from "../services/auth.service";
+// import { wizardService, WizardData } from "../services/wizard.service"; // <-- NUEVO
 
 interface AuthState {
   user: UserProfile | null;
@@ -16,9 +16,10 @@ interface AuthState {
   logout: () => void;
   loadUser: () => Promise<void>;
   updateUser: (userData: Partial<UserProfile>) => Promise<void>;
-}
 
-console.log("INgresando al store");
+  // Wizard actions (ahora solo manejan estado)
+  setWizardCompleted: (userData: UserProfile) => void;
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -42,20 +43,6 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
             });
 
-            //TODO UNA VEZ QUE SE LOGUEA O REGISTRA, DEBE CORRER EL WIZARD, VERIFICAR SI PODRIA IR AQUI(Y EN REGISTER)
-            // // En el store o en app/index.tsx
-            // if (isAuthenticated) {
-            //   // Verificar si necesita wizard
-            //   const { needsWizard } = await api.get("/auth/wizard-status");
-
-            //   if (needsWizard) {
-            //     router.replace("/wizard");
-            //   } else {
-            //     router.replace("/(tabs)");
-            //   }
-            // }
-
-            // Guardar token en AsyncStorage (ya lo hace persist)
             await AsyncStorage.setItem("auth_token", response.data.token);
           } else {
             throw new Error(response.message);
@@ -73,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await authService.register({
             email,
             password,
-            name: "", // Enviar nombre vacío
+            name: "",
           });
 
           if (response.success) {
@@ -105,11 +92,43 @@ export const useAuthStore = create<AuthState>()(
         AsyncStorage.removeItem("auth_token");
       },
 
+      // loadUser: async () => {
+      //   console.log("Cargando usuario...");
+      //   const token = await AsyncStorage.getItem("auth_token");
+      //   if (!token) {
+      //     set({ isAuthenticated: false });
+      //     return;
+      //   }
+
+      //   set({ isLoading: true });
+      //   try {
+      //     const response = await authService.getProfile();
+
+      //     if (response.success) {
+      //       set({
+      //         user: response.data.user,
+      //         token,
+      //         isAuthenticated: true,
+      //         isLoading: false,
+      //       });
+      //     } else {
+      //       await AsyncStorage.removeItem("auth_token");
+      //       set({ isAuthenticated: false });
+      //     }
+      //   } catch (error) {
+      //     await AsyncStorage.removeItem("auth_token");
+      //     set({ isAuthenticated: false, isLoading: false });
+      //   }
+      // },
+
       loadUser: async () => {
         console.log("Cargando usuario...");
         const token = await AsyncStorage.getItem("auth_token");
+
+        // Si no hay token, NO está autenticado
         if (!token) {
-          set({ isAuthenticated: false });
+          console.log("No hay token, usuario NO autenticado");
+          set({ isAuthenticated: false, user: null, token: null });
           return;
         }
 
@@ -118,6 +137,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await authService.getProfile();
 
           if (response.success) {
+            console.log("Usuario autenticado correctamente");
             set({
               user: response.data.user,
               token,
@@ -125,12 +145,14 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
             });
           } else {
+            console.log("Token inválido, limpiando...");
             await AsyncStorage.removeItem("auth_token");
-            set({ isAuthenticated: false });
+            set({ isAuthenticated: false, user: null, token: null, isLoading: false });
           }
         } catch (error) {
+          console.error("Error cargando usuario:", error);
           await AsyncStorage.removeItem("auth_token");
-          set({ isAuthenticated: false, isLoading: false });
+          set({ isAuthenticated: false, user: null, token: null, isLoading: false });
         }
       },
 
@@ -147,31 +169,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // En useAuthStore.ts
-      loginWithGoogle: async () => {
-        set({ isLoading: true });
-        try {
-          // TODO: Implementar Google Sign-In
-          const { token, user } = await googleAuthService.signInWithGoogle();
-
-          // Guardar token y usuario
-          set({
-            user: {
-              id: user.id,
-              email: user.email,
-              name: user.name || "",
-              // ... otros campos
-            },
-            token,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-
-          await AsyncStorage.setItem("auth_token", token);
-        } catch (error) {
-          set({ isLoading: false });
-          throw error;
-        }
+      // Nueva función solo para actualizar estado
+      setWizardCompleted: (userData: UserProfile) => {
+        set({
+          user: userData,
+          isLoading: false,
+        });
       },
     }),
     {
