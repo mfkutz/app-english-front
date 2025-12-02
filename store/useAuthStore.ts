@@ -42,6 +42,19 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
             });
 
+            //TODO UNA VEZ QUE SE LOGUEA O REGISTRA, DEBE CORRER EL WIZARD, VERIFICAR SI PODRIA IR AQUI(Y EN REGISTER)
+            // // En el store o en app/index.tsx
+            // if (isAuthenticated) {
+            //   // Verificar si necesita wizard
+            //   const { needsWizard } = await api.get("/auth/wizard-status");
+
+            //   if (needsWizard) {
+            //     router.replace("/wizard");
+            //   } else {
+            //     router.replace("/(tabs)");
+            //   }
+            // }
+
             // Guardar token en AsyncStorage (ya lo hace persist)
             await AsyncStorage.setItem("auth_token", response.data.token);
           } else {
